@@ -5,13 +5,13 @@ import akka.cluster.Cluster
 import akka.cluster.ClusterEvent._
 
 object SimpleClusterApp {
-  
-  def main(args: Array[String]): Unit = {
-    
-    // Override the configuration of the port 
+
+  def main(args: Array[String]) {
+
+    // Override the configuration of the port
     // when specified as program argument
     if (args.nonEmpty) System.setProperty("akka.remote.netty.port", args(0))
-    
+
     // Create an Akka system
     val system = ActorSystem("ClusterSystem")
     val clusterListener = system.actorOf(Props(new Actor with ActorLogging {
@@ -25,10 +25,10 @@ object SimpleClusterApp {
         case MemberUnreachable(member) ⇒
         log.info("Member detected as unreachable: {}", member)
         case _: ClusterDomainEvent ⇒ // ignore
-        
+
       }
     }), name = "clusterListener")
-    
+
     Cluster(system).subscribe(clusterListener, classOf[ClusterDomainEvent])
   }
 
