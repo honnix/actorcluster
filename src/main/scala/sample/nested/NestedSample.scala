@@ -31,7 +31,8 @@ class ClassB extends Actor {
   println("===============ClassB " + self.path)
 
   def receive = {
-    case x => context.actorOf(Props(new ClassC), "actorOfClassC") ! 'go
+    // case x => context.actorOf(Props(new ClassC), "actorOfClassC") ! 'go
+    case x => println(s"${self}: ${x}")
   }
 }
 
@@ -51,10 +52,28 @@ class ClassD(something: Something) extends Actor {
 
 object Main extends App {
   System.setProperty("akka.remote.netty.port", args(0))
-  ActorSystem("ClusterSystem").actorOf(Props[ClassA], "actorOfClassA") ! Message("my_id")
+
+  val system = ActorSystem("ClusterSystem")
+
+  system.actorOf(Props[ClassB], "workerOfRouterInsideClassA")
+  val actorA = system.actorOf(Props[ClassA], "actorOfClassA")
+
+  while (true) {
+    actorA ! Message("Main")
+    Thread.sleep(1000)
+  }
 }
 
 object Client extends App {
   System.setProperty("akka.remote.netty.port", args(0))
-  ActorSystem("ClusterSystem").actorOf(Props(new ClassD(null)), "actorOfClassD")
+
+  val system = ActorSystem("ClusterSystem")
+
+  system.actorOf(Props[ClassB], "workerOfRouterInsideClassA")
+  val actorA = system.actorOf(Props[ClassA], "actorOfClassA")
+
+  while (true) {
+    actorA ! Message("Client")
+    Thread.sleep(1000)
+  }
 }
